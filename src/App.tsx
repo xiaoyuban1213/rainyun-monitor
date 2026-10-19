@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Announcements } from './components/Announcements';
 import { NodeTable } from './components/NodeTable';
 import { StatCards } from './components/StatCards';
@@ -6,6 +6,7 @@ import { Toolbar } from './components/Toolbar';
 import { useStatusData } from './hooks/useStatusData';
 import type { SortKey, StatusFilter } from './types';
 import { formatClock, resolveNodeState } from './utils/format';
+import { runWithViewTransition } from './utils/motion';
 
 const PAGE_SIZE = 20;
 /** 版权起始年份；结束年份取渲染时的当前年份 */
@@ -117,9 +118,34 @@ export default function App() {
   );
 
   // 筛选条件变化时回到第一页
-  useEffect(() => {
+  const changeQuery = (value: string) => {
+    setQuery(value);
     setPage(1);
-  }, [query, product, statusFilter, sort]);
+  };
+
+  // 以下切换都用 View Transitions 包一层：支持时行位平滑位移，不支持则直接切换
+  const changeProduct = (value: string) =>
+    runWithViewTransition(() => {
+      setProduct(value);
+      setPage(1);
+    });
+
+  const changeStatus = (value: StatusFilter) =>
+    runWithViewTransition(() => {
+      setStatusFilter(value);
+      setPage(1);
+    });
+
+  const changeSort = (value: SortKey) =>
+    runWithViewTransition(() => {
+      setSort(value);
+      setPage(1);
+    });
+
+  const goPage = (next: number) =>
+    runWithViewTransition(() => {
+      setPage(Math.min(pageCount, Math.max(1, next)));
+    });
 
   return (
     <div className="page">
@@ -179,14 +205,14 @@ export default function App() {
 
       <Toolbar
         query={query}
-        onQueryChange={setQuery}
+        onQueryChange={changeQuery}
         products={products}
         product={product}
-        onProductChange={setProduct}
+        onProductChange={changeProduct}
         statusFilter={statusFilter}
-        onStatusChange={setStatusFilter}
+        onStatusChange={changeStatus}
         sort={sort}
-        onSortChange={setSort}
+        onSortChange={changeSort}
         resultCount={filtered.length}
       />
 
@@ -202,7 +228,7 @@ export default function App() {
           <button
             type="button"
             className="button button--ghost"
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            onClick={() => goPage(currentPage - 1)}
             disabled={currentPage <= 1}
           >
             上一页
@@ -215,7 +241,7 @@ export default function App() {
           <button
             type="button"
             className="button button--ghost"
-            onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
+            onClick={() => goPage(currentPage + 1)}
             disabled={currentPage >= pageCount}
           >
             下一页

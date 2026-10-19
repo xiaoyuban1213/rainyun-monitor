@@ -18,6 +18,11 @@ interface NodeTableProps {
   affectedNodeIds: ReadonlySet<string>;
 }
 
+/** View Transitions 要求自定义标识符，UUID 里的字符处理后加上前缀即可 */
+function rowTransitionName(id: string): string {
+  return `row-${id.replace(/[^a-zA-Z0-9_-]/g, '')}`;
+}
+
 export function NodeTable({
   nodes,
   now,
@@ -77,7 +82,10 @@ export function NodeTable({
             const affected = affectedNodeIds.has(node.id);
 
             return (
-              <tr key={node.id}>
+              <tr
+                key={node.id}
+                style={{ viewTransitionName: rowTransitionName(node.id) }}
+              >
                 <td className="col-name">
                   <span className="node-name">
                     {node.name}

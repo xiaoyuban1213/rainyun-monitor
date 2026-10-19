@@ -71,7 +71,10 @@ export function Announcements({ events, now }: AnnouncementsProps) {
                 </span>
               </button>
 
-              <div className={`announcement__drawer ${open ? 'is-open' : ''}`}>
+              <div
+                className={`announcement__drawer ${open ? 'is-open' : ''}`}
+                aria-hidden={!open}
+              >
                 <div className="announcement__drawer-inner">
                   {overdue ? (
                     <p className="announcement__overdue">

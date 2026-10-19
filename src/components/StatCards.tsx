@@ -1,3 +1,4 @@
+import { useAnimatedNumber } from '../hooks/useAnimatedNumber';
 import { formatPercent, OFFLINE_THRESHOLD_SECONDS } from '../utils/format';
 
 interface StatCardsProps {
@@ -19,7 +20,15 @@ export function StatCards({
   avgCpu,
   avgMemory,
 }: StatCardsProps) {
-  const healthyRate = total > 0 ? (healthy / total) * 100 : 0;
+  const [totalValue, totalBusy] = useAnimatedNumber(total);
+  const [healthyValue, healthyBusy] = useAnimatedNumber(healthy);
+  const [downValue, downBusy] = useAnimatedNumber(down);
+  const [cpuValue, cpuBusy] = useAnimatedNumber(avgCpu);
+  const [memoryValue, memoryBusy] = useAnimatedNumber(avgMemory);
+
+  const busy = totalBusy || healthyBusy || downBusy || cpuBusy || memoryBusy;
+  const healthyRate =
+    totalValue > 0 ? (healthyValue / totalValue) * 100 : 0;
 
   const downFoot =
     down > 0
@@ -29,10 +38,13 @@ export function StatCards({
         : '当前无异常节点';
 
   return (
-    <section className="stats" aria-label="总览统计">
+    <section
+      className={`stats ${busy ? 'is-updating' : ''}`}
+      aria-label="总览统计"
+    >
       <article className="stat-card">
         <span className="stat-card__label">节点总数</span>
-        <strong className="stat-card__value">{total}</strong>
+        <strong className="stat-card__value">{Math.round(totalValue)}</strong>
         <span className="stat-card__foot">
           覆盖 {productCount} 类产品
         </span>
@@ -40,7 +52,9 @@ export function StatCards({
 
       <article className="stat-card stat-card--ok">
         <span className="stat-card__label">运行正常</span>
-        <strong className="stat-card__value">{healthy}</strong>
+        <strong className="stat-card__value">
+          {Math.round(healthyValue)}
+        </strong>
         <span className="stat-card__foot">
           可用率 {formatPercent(healthyRate)}
         </span>
@@ -48,16 +62,16 @@ export function StatCards({
 
       <article className={`stat-card ${down > 0 ? 'stat-card--bad' : ''}`}>
         <span className="stat-card__label">服务中断</span>
-        <strong className="stat-card__value">{down}</strong>
+        <strong className="stat-card__value">{Math.round(downValue)}</strong>
         <span className="stat-card__foot">{downFoot}</span>
       </article>
 
       <article className="stat-card">
         <span className="stat-card__label">平均负载</span>
         <strong className="stat-card__value stat-card__value--split">
-          {formatPercent(avgCpu)}
+          {formatPercent(cpuValue)}
           <span className="stat-card__divider">/</span>
-          {formatPercent(avgMemory)}
+          {formatPercent(memoryValue)}
         </strong>
         <span className="stat-card__foot">
           CPU / 内存
