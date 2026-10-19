@@ -5,7 +5,12 @@ import { StatCards } from './components/StatCards';
 import { Toolbar } from './components/Toolbar';
 import { REFRESH_OPTIONS, useStatusData } from './hooks/useStatusData';
 import type { SortKey, StatusFilter } from './types';
-import { formatClock, formatDuration } from './utils/format';
+import {
+  formatClock,
+  formatDuration,
+  OFFLINE_THRESHOLD_SECONDS,
+  resolveNodeState,
+} from './utils/format';
 
 const PAGE_SIZE = 20;
 
@@ -32,7 +37,16 @@ export default function App() {
   const [page, setPage] = useState(1);
 
   const stats = useMemo(() => {
-    const healthy = nodes.filter((n) => n.healthy).length;
+    let healthy = 0;
+    let overload = 0;
+    let down = 0;
+    for (const node of nodes) {
+      const state = resolveNodeState(node.status, node.updatedAt, now);
+      if (state === 'ok') healthy += 1;
+      else if (state === 'overload') overload += 1;
+      else if (state === 'down') down += 1;
+    }
+
     const productCount = new Set(nodes.map((n) => n.product)).size;
     const avgCpu =
       nodes.length > 0
@@ -42,19 +56,22 @@ export default function App() {
       nodes.length > 0
         ? nodes.reduce((sum, n) => sum + n.memory, 0) / nodes.length
         : 0;
-    const staleCount = nodes.filter(
-      (n) => n.updatedAt > 0 && now - n.updatedAt > 300_000,
-    ).length;
 
-    return {
-      healthy,
-      down: nodes.length - healthy,
-      productCount,
-      avgCpu,
-      avgMemory,
-      staleCount,
-    };
+    return { healthy, overload, down, productCount, avgCpu, avgMemory };
   }, [nodes, now]);
+
+  // 进行中事件涉及的节点，用于在表格里标记「事件影响中」
+  const affectedNodeIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const event of events) {
+      if (!event.affect_nodes) continue;
+      for (const id of event.affect_nodes.split(',')) {
+        const trimmed = id.trim();
+        if (trimmed) ids.add(trimmed);
+      }
+    }
+    return ids;
+  }, [events]);
 
   const products = useMemo(() => {
     const counts = new Map<string, number>();
@@ -70,8 +87,10 @@ export default function App() {
     const keyword = query.trim().toLowerCase();
     const list = nodes.filter((node) => {
       if (product !== 'all' && node.product !== product) return false;
-      if (statusFilter === 'ok' && !node.healthy) return false;
-      if (statusFilter === 'down' && node.healthy) return false;
+      if (statusFilter !== 'all') {
+        const state = resolveNodeState(node.status, node.updatedAt, now);
+        if (state !== statusFilter) return false;
+      }
       if (!keyword) return true;
       return (
         node.name.toLowerCase().includes(keyword) ||
@@ -187,11 +206,11 @@ export default function App() {
       <StatCards
         total={nodes.length}
         healthy={stats.healthy}
+        overload={stats.overload}
         down={stats.down}
         productCount={stats.productCount}
         avgCpu={stats.avgCpu}
         avgMemory={stats.avgMemory}
-        staleCount={stats.staleCount}
       />
 
       <Toolbar
@@ -207,7 +226,12 @@ export default function App() {
         resultCount={filtered.length}
       />
 
-      <NodeTable nodes={pageNodes} now={now} loading={loading} />
+      <NodeTable
+        nodes={pageNodes}
+        now={now}
+        loading={loading}
+        affectedNodeIds={affectedNodeIds}
+      />
 
       {!loading && filtered.length > 0 ? (
         <nav className="pagination" aria-label="分页">
@@ -246,6 +270,8 @@ export default function App() {
             雨云节点监控
           </a>
           （接口 api.v2.rainyun.com，无需鉴权）
+          <span className="footer__sep">·</span>
+          判定规则：超过 {OFFLINE_THRESHOLD_SECONDS / 60} 分钟未上报即服务中断
         </span>
         {lastUpdated ? (
           <span className="footer__age">

@@ -670,6 +670,16 @@ select {
   white-space: nowrap;
 }
 
+.pill--event {
+  margin-left: 8px;
+  padding: 1px 7px;
+  background: rgba(251, 191, 36, 0.14);
+  color: #fcd34d;
+  font-size: 11px;
+  font-weight: 500;
+  vertical-align: 1px;
+}
+
 .col-status {
   width: 118px;
 }
@@ -704,6 +714,24 @@ select {
 .status--down .status__dot {
   background: var(--bad);
   box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.18);
+}
+
+.status--overload {
+  color: var(--warn);
+}
+
+.status--overload .status__dot {
+  background: var(--warn);
+  box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.18);
+}
+
+.status--unknown {
+  color: var(--faint);
+}
+
+.status--unknown .status__dot {
+  background: var(--faint);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.08);
 }
 
 .col-load {
@@ -861,6 +889,11 @@ select {
 
 .footer__age {
   font-variant-numeric: tabular-nums;
+}
+
+.footer__sep {
+  margin: 0 8px;
+  color: rgba(255, 255, 255, 0.18);
 }
 
 /* ---------- responsive ---------- */

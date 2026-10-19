@@ -74,7 +74,6 @@ export async function fetchStatus(): Promise<StatusSnapshot> {
       netOut: Number.isFinite(raw.NetOut) ? raw.NetOut : 0,
       updatedAt: Number.isFinite(updatedAt) ? updatedAt : 0,
       status: raw.Status || 'unknown',
-      healthy: (raw.Status || '').toLowerCase() === 'ok',
     });
   }
 

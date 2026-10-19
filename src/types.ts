@@ -51,8 +51,14 @@ export interface NodeItem {
   /** Unix 毫秒 */
   updatedAt: number;
   status: string;
-  healthy: boolean;
 }
 
+/**
+ * 节点展示状态。
+ * 与官方状态页一致：超过 5 分钟未上报视为「服务中断」，
+ * 未超时且 Status 为 overload 时展示「运行阻塞」。
+ */
+export type NodeState = 'ok' | 'overload' | 'down' | 'unknown';
+
 export type SortKey = 'cpu' | 'memory' | 'name' | 'updated';
-export type StatusFilter = 'all' | 'ok' | 'down';
+export type StatusFilter = 'all' | 'ok' | 'overload' | 'down';

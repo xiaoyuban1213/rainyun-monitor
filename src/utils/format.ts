@@ -1,3 +1,45 @@
+import type { NodeState } from '../types';
+
+/** 官方判定阈值：节点超过该时长未上报数据，即视为「服务中断」。
+ * 取自状态页前端逻辑 `UpdateTime + 300 > now`。
+ */
+export const OFFLINE_THRESHOLD_SECONDS = 300;
+
+/** 未超时情况下，状态值对应的展示状态 */
+const STATUS_MAP: Record<string, NodeState> = {
+  ok: 'ok',
+  overload: 'overload',
+};
+
+export const STATE_LABELS: Record<NodeState, string> = {
+  ok: '运行正常',
+  overload: '运行阻塞',
+  down: '服务中断',
+  unknown: '状态未知',
+};
+
+/**
+ * 计算节点展示状态：
+ * 1. 距最后上报超过 5 分钟 → 服务中断（无论接口里 Status 是什么）
+ * 2. 未超时且 Status=ok → 运行正常
+ * 3. 未超时且 Status=overload → 运行阻塞
+ * 4. 其他值 → 状态未知
+ */
+export function resolveNodeState(
+  status: string,
+  updatedAt: number,
+  now: number,
+): NodeState {
+  if (!updatedAt) return 'down';
+  if (now - updatedAt > OFFLINE_THRESHOLD_SECONDS * 1000) return 'down';
+  return STATUS_MAP[(status || '').toLowerCase()] ?? 'unknown';
+}
+
+/** 节点是否处于异常状态（阻塞或中断） */
+export function isAbnormal(state: NodeState): boolean {
+  return state !== 'ok';
+}
+
 /** 产品代码 → 中文名 */
 export const PRODUCT_LABELS: Record<string, string> = {
   rcs: '云服务器',

@@ -1,14 +1,29 @@
 import type { NodeItem } from '../types';
-import { formatRelative, productLabel } from '../utils/format';
+import {
+  formatClock,
+  formatDuration,
+  formatRelative,
+  OFFLINE_THRESHOLD_SECONDS,
+  productLabel,
+  resolveNodeState,
+  STATE_LABELS,
+} from '../utils/format';
 import { Meter } from './Meter';
 
 interface NodeTableProps {
   nodes: NodeItem[];
   now: number;
   loading: boolean;
+  /** 正在进行中的服务事件所涉及的节点 UUID */
+  affectedNodeIds: ReadonlySet<string>;
 }
 
-export function NodeTable({ nodes, now, loading }: NodeTableProps) {
+export function NodeTable({
+  nodes,
+  now,
+  loading,
+  affectedNodeIds,
+}: NodeTableProps) {
   if (loading) {
     return (
       <div className="table-skeleton" aria-hidden="true">
@@ -55,15 +70,21 @@ export function NodeTable({ nodes, now, loading }: NodeTableProps) {
         </thead>
         <tbody>
           {nodes.map((node) => {
-            const ageSeconds = node.updatedAt
-              ? (now - node.updatedAt) / 1000
+            const state = resolveNodeState(node.status, node.updatedAt, now);
+            const silentSeconds = node.updatedAt
+              ? Math.floor((now - node.updatedAt) / 1000)
               : Number.POSITIVE_INFINITY;
-            const stale = ageSeconds > 300;
+            const affected = affectedNodeIds.has(node.id);
 
             return (
               <tr key={node.id}>
                 <td className="col-name">
-                  <span className="node-name">{node.name}</span>
+                  <span className="node-name">
+                    {node.name}
+                    {affected ? (
+                      <span className="pill pill--event">事件影响中</span>
+                    ) : null}
+                  </span>
                   <span className="node-id">{node.id.slice(0, 8)}</span>
                 </td>
                 <td className="col-product">
@@ -71,10 +92,15 @@ export function NodeTable({ nodes, now, loading }: NodeTableProps) {
                 </td>
                 <td className="col-status">
                   <span
-                    className={`status status--${node.healthy ? 'ok' : 'down'}`}
+                    className={`status status--${state}`}
+                    title={
+                      state === 'down'
+                        ? `已 ${formatDuration(silentSeconds)}未上报数据（阈值 ${OFFLINE_THRESHOLD_SECONDS} 秒）`
+                        : STATE_LABELS[state]
+                    }
                   >
                     <span className="status__dot" aria-hidden="true" />
-                    {node.healthy ? '运行正常' : '服务中断'}
+                    {STATE_LABELS[state]}
                   </span>
                 </td>
                 <td className="col-load">
@@ -83,7 +109,14 @@ export function NodeTable({ nodes, now, loading }: NodeTableProps) {
                 <td className="col-load">
                   <Meter value={node.memory} label={`${node.name} 内存`} />
                 </td>
-                <td className={`col-updated ${stale ? 'is-stale' : ''}`}>
+                <td
+                  className={`col-updated ${state === 'down' ? 'is-stale' : ''}`}
+                  title={
+                    node.updatedAt
+                      ? `最后上报：${formatClock(node.updatedAt)}`
+                      : '尚未上报'
+                  }
+                >
                   {formatRelative(node.updatedAt, now)}
                 </td>
               </tr>

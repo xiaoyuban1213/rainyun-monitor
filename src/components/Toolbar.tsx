@@ -56,6 +56,7 @@ export function Toolbar({
           >
             <option value="all">全部状态</option>
             <option value="ok">运行正常</option>
+            <option value="overload">运行阻塞</option>
             <option value="down">服务中断</option>
           </select>
 
