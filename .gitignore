@@ -1,0 +1,45 @@
+# ---- 依赖 ----
+node_modules/
+.pnpm-store/
+vendor/
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+
+# ---- 构建产物 ----
+dist/
+build/
+out/
+bin/
+obj/
+*.tsbuildinfo
+*.exe
+*.dll
+*.pdb
+
+# ---- 环境配置（含密钥，务必忽略）----
+.env
+.env.*
+!.env.example
+config.local.*
+*.local.json
+secrets.*
+
+# ---- 日志与临时文件 ----
+*.log
+logs/
+.tmp/
+tmp/
+cache/
+
+# ---- 编辑器 / 系统 ----
+.vscode/*
+!.vscode/settings.json
+!.vscode/launch.json
+!.vscode/tasks.json
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
