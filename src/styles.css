@@ -952,13 +952,8 @@ select {
   color: var(--faint);
 }
 
-.footer__age {
-  font-variant-numeric: tabular-nums;
-}
-
-.footer__sep {
-  margin: 0 8px;
-  color: rgba(255, 255, 255, 0.18);
+.footer__copy {
+  white-space: nowrap;
 }
 
 /* ---------- responsive ---------- */

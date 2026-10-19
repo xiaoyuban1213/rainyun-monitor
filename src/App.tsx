@@ -5,14 +5,11 @@ import { StatCards } from './components/StatCards';
 import { Toolbar } from './components/Toolbar';
 import { useStatusData } from './hooks/useStatusData';
 import type { SortKey, StatusFilter } from './types';
-import {
-  formatClock,
-  formatDuration,
-  OFFLINE_THRESHOLD_SECONDS,
-  resolveNodeState,
-} from './utils/format';
+import { formatClock, resolveNodeState } from './utils/format';
 
 const PAGE_SIZE = 20;
+/** 版权起始年份；结束年份取渲染时的当前年份 */
+const COPYRIGHT_START_YEAR = 2018;
 
 export default function App() {
   const {
@@ -237,15 +234,10 @@ export default function App() {
             雨云节点监控
           </a>
           （接口 api.v2.rainyun.com，无需鉴权）
-          <span className="footer__sep">·</span>
-          判定规则：超过 {OFFLINE_THRESHOLD_SECONDS / 60} 分钟未上报即服务中断
         </span>
-        {lastUpdated ? (
-          <span className="footer__age">
-            快照时间 {formatClock(lastUpdated)}（
-            {formatDuration((now - lastUpdated) / 1000)}）
-          </span>
-        ) : null}
+        <span className="footer__copy">
+          {`Copyright © ${COPYRIGHT_START_YEAR}-${new Date().getFullYear()} Yuban-Network`}
+        </span>
       </footer>
     </div>
   );
