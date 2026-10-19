@@ -65,6 +65,17 @@ export function eventTypeLabel(type: string): string {
   return EVENT_TYPE_LABELS[type] ?? type;
 }
 
+/** 事件正文前的引导语，按类型区分 */
+const EVENT_BODY_LABELS: Record<string, string> = {
+  maintain: '维护内容',
+  incident: '故障说明',
+  notice: '公告内容',
+};
+
+export function eventBodyLabel(type: string): string {
+  return EVENT_BODY_LABELS[type] ?? '详情';
+}
+
 export function formatPercent(value: number): string {
   if (!Number.isFinite(value)) return '—';
   const rounded = Math.round(value * 10) / 10;

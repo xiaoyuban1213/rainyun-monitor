@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import type { ServiceEvent } from '../types';
 import {
+  eventBodyLabel,
   eventTypeLabel,
-  formatClock,
   formatElapsed,
   formatEventRange,
   isEventOverdue,
@@ -37,8 +37,12 @@ export function Announcements({ events, now }: AnnouncementsProps) {
           const overdueSince = formatElapsed(
             (now - event.end_date * 1000) / 1000,
           );
+
           return (
-            <li key={event.id} className="announcement">
+            <li
+              key={event.id}
+              className={`announcement ${open ? 'is-open' : ''}`}
+            >
               <button
                 type="button"
                 className="announcement__summary"
@@ -55,15 +59,10 @@ export function Announcements({ events, now }: AnnouncementsProps) {
                     : '全平台'}
                   <span className="announcement__sep">·</span>
                   {formatEventRange(event.start_date, event.end_date)}
+                  {overdue ? (
+                    <span className="announcement__flag">已超时</span>
+                  ) : null}
                 </span>
-                {overdue ? (
-                  <span
-                    className="pill pill--overdue"
-                    title={`计划于 ${formatClock(event.end_date * 1000)} 结束，已超出 ${overdueSince}。官方尚未更新事件状态，可能遇到了其他情况，请留意后续公告。`}
-                  >
-                    已超出计划结束时间
-                  </span>
-                ) : null}
                 <span
                   className={`announcement__chevron ${open ? 'is-open' : ''}`}
                   aria-hidden="true"
@@ -72,9 +71,26 @@ export function Announcements({ events, now }: AnnouncementsProps) {
                 </span>
               </button>
 
-              {open && text ? (
-                <div className="announcement__body">{text}</div>
-              ) : null}
+              <div className={`announcement__drawer ${open ? 'is-open' : ''}`}>
+                <div className="announcement__drawer-inner">
+                  {overdue ? (
+                    <p className="announcement__overdue">
+                      <span className="announcement__overdue-title">
+                        已超出计划结束时间 {overdueSince}
+                      </span>
+                      官方尚未更新事件状态，可能遇到了其他情况，请留意后续公告。
+                    </p>
+                  ) : null}
+                  {text ? (
+                    <p className="announcement__body">
+                      <span className="announcement__label">
+                        {eventBodyLabel(event.type)}：
+                      </span>
+                      {text}
+                    </p>
+                  ) : null}
+                </div>
+              </div>
             </li>
           );
         })}
