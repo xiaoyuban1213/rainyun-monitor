@@ -233,7 +233,6 @@ export default function App() {
           >
             雨云节点监控
           </a>
-          （接口 api.v2.rainyun.com，无需鉴权）
         </span>
         <span className="footer__copy">
           {`Copyright © ${COPYRIGHT_START_YEAR}-${new Date().getFullYear()} Yuban-Network`}
