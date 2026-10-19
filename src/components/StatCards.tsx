@@ -22,20 +22,24 @@ export function StatCards({
 }: StatCardsProps) {
   const [totalValue, totalBusy] = useAnimatedNumber(total);
   const [healthyValue, healthyBusy] = useAnimatedNumber(healthy);
+  const [overloadValue, overloadBusy] = useAnimatedNumber(overload);
   const [downValue, downBusy] = useAnimatedNumber(down);
   const [cpuValue, cpuBusy] = useAnimatedNumber(avgCpu);
   const [memoryValue, memoryBusy] = useAnimatedNumber(avgMemory);
 
-  const busy = totalBusy || healthyBusy || downBusy || cpuBusy || memoryBusy;
-  const healthyRate =
-    totalValue > 0 ? (healthyValue / totalValue) * 100 : 0;
+  const busy =
+    totalBusy ||
+    healthyBusy ||
+    overloadBusy ||
+    downBusy ||
+    cpuBusy ||
+    memoryBusy;
 
-  const downFoot =
-    down > 0
-      ? `超过 ${OFFLINE_THRESHOLD_SECONDS / 60} 分钟未上报`
-      : overload > 0
-        ? `${overload} 个节点运行阻塞`
-        : '当前无异常节点';
+  const ratio = (value: number) =>
+    totalValue > 0 ? (value / totalValue) * 100 : 0;
+
+  // 正常 + 阻塞 + 中断 之外的节点（Status 是未知值），单独补一句，保证总数能对上
+  const unknownCount = Math.max(0, total - healthy - overload - down);
 
   return (
     <section
@@ -47,6 +51,7 @@ export function StatCards({
         <strong className="stat-card__value">{Math.round(totalValue)}</strong>
         <span className="stat-card__foot">
           覆盖 {productCount} 类产品
+          {unknownCount > 0 ? ` · ${unknownCount} 个状态未知` : ''}
         </span>
       </article>
 
@@ -56,14 +61,30 @@ export function StatCards({
           {Math.round(healthyValue)}
         </strong>
         <span className="stat-card__foot">
-          可用率 {formatPercent(healthyRate)}
+          可用率 {formatPercent(ratio(healthyValue))}
+        </span>
+      </article>
+
+      <article className={`stat-card ${overload > 0 ? 'stat-card--warn' : ''}`}>
+        <span className="stat-card__label">运行阻塞</span>
+        <strong className="stat-card__value">
+          {Math.round(overloadValue)}
+        </strong>
+        <span className="stat-card__foot">
+          {overload > 0
+            ? `占 ${formatPercent(ratio(overloadValue))}`
+            : '当前无阻塞节点'}
         </span>
       </article>
 
       <article className={`stat-card ${down > 0 ? 'stat-card--bad' : ''}`}>
         <span className="stat-card__label">服务中断</span>
         <strong className="stat-card__value">{Math.round(downValue)}</strong>
-        <span className="stat-card__foot">{downFoot}</span>
+        <span className="stat-card__foot">
+          {down > 0
+            ? `超过 ${OFFLINE_THRESHOLD_SECONDS / 60} 分钟未上报`
+            : '当前无中断节点'}
+        </span>
       </article>
 
       <article className="stat-card">
@@ -73,10 +94,7 @@ export function StatCards({
           <span className="stat-card__divider">/</span>
           {formatPercent(memoryValue)}
         </strong>
-        <span className="stat-card__foot">
-          CPU / 内存
-          {overload > 0 ? ` · ${overload} 个节点运行阻塞` : ''}
-        </span>
+        <span className="stat-card__foot">CPU / 内存</span>
       </article>
     </section>
   );

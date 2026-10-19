@@ -7,6 +7,7 @@ const STATUS_OPTIONS = [
   { value: 'ok', label: '运行正常' },
   { value: 'overload', label: '运行阻塞' },
   { value: 'down', label: '服务中断' },
+  { value: 'abnormal', label: '仅异常（阻塞 + 中断）' },
 ] as const satisfies readonly { value: StatusFilter; label: string }[];
 
 const SORT_OPTIONS = [
@@ -80,6 +81,17 @@ export function Toolbar({
       </div>
 
       <div className="chips" role="group" aria-label="按产品筛选">
+        <button
+          type="button"
+          className={`chip chip--abnormal ${statusFilter === 'abnormal' ? 'is-active' : ''}`}
+          aria-pressed={statusFilter === 'abnormal'}
+          onClick={() =>
+            onStatusChange(statusFilter === 'abnormal' ? 'all' : 'abnormal')
+          }
+        >
+          只看异常
+        </button>
+        <span className="chips__divider" aria-hidden="true" />
         <button
           type="button"
           className={`chip ${product === 'all' ? 'is-active' : ''}`}

@@ -61,4 +61,5 @@ export interface NodeItem {
 export type NodeState = 'ok' | 'overload' | 'down' | 'unknown';
 
 export type SortKey = 'cpu' | 'memory' | 'name' | 'updated';
-export type StatusFilter = 'all' | 'ok' | 'overload' | 'down';
+/** abnormal = 运行阻塞 + 服务中断，用于「只看异常」 */
+export type StatusFilter = 'all' | 'ok' | 'overload' | 'down' | 'abnormal';

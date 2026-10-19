@@ -84,7 +84,10 @@ export default function App() {
       if (product !== 'all' && node.product !== product) return false;
       if (statusFilter !== 'all') {
         const state = resolveNodeState(node.status, node.updatedAt, now);
-        if (state !== statusFilter) return false;
+        const abnormal = state === 'overload' || state === 'down';
+        const matched =
+          statusFilter === 'abnormal' ? abnormal : state === statusFilter;
+        if (!matched) return false;
       }
       if (!keyword) return true;
       return (

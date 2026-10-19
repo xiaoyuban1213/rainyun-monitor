@@ -40,7 +40,12 @@ export function isAbnormal(state: NodeState): boolean {
   return state !== 'ok';
 }
 
-/** 产品代码 → 中文名 */
+/**
+ * 产品代码 → 中文名。
+ * 状态接口只返回代码（如 rgs / rcs），没有名称字段；这里的中文名来自官方页面
+ * 前端硬编码的字典（chunk-common.js），不是我们编的。
+ * 未收录的新产品会原样显示为大写代码，并在筛选条里自动出现。
+ */
 export const PRODUCT_LABELS: Record<string, string> = {
   rcs: '云服务器',
   rgs: '游戏云',
@@ -48,6 +53,12 @@ export const PRODUCT_LABELS: Record<string, string> = {
   ros: '对象存储',
   rvh: '虚拟主机',
   storage: '存储',
+  rbm: '裸金属物理机',
+  rgpu: '显卡云电脑',
+  rca: '云应用',
+  domain: '域名服务',
+  ssl: 'SSL 证书',
+  rshop: '软件商店',
 };
 
 export function productLabel(code: string): string {
