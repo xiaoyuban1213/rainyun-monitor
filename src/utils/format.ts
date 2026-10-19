@@ -53,7 +53,11 @@ export const PRODUCT_LABELS: Record<string, string> = {
   router: '网络设备',
   ros: '对象存储',
   rvh: '虚拟主机',
-  storage: '存储',
+  /**
+   * 17 个 storage 节点名均为「XX机柜N存储节点」。接口未说明用途
+   * （可能是备份/系统镜像/预装程序），故按形态命名，避免与 ros（对象存储）混淆。
+   */
+  storage: '机柜存储',
   rbm: '裸金属物理机',
   rgpu: '显卡云电脑',
   rca: '云应用',
