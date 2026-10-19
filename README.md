@@ -20,6 +20,8 @@ React 19 + TypeScript + Vite 7，无额外 UI / 图表依赖。
 
 ## 本地运行
 
+要求 Node.js `^20.19.0 || >=22.12.0`（Vite 7 的最低要求，`.nvmrc` 里钉的是 24）。
+
 ```bash
 npm install
 npm run dev       # http://localhost:5173
@@ -151,3 +153,7 @@ src/
 ```
 VITE_RAINYUN_API_BASE=https://api.v2.rainyun.com
 ```
+
+## 许可
+
+[MIT](LICENSE)
