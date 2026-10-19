@@ -90,6 +90,53 @@ export function formatClock(ms: number): string {
   return new Date(ms).toLocaleString('zh-CN', { hour12: false });
 }
 
+/**
+ * 服务事件的时间窗。
+ * 没有结束时间时退回「xxx 起」；与开始同一天时省略重复的日期部分。
+ */
+export function formatEventRange(
+  startSeconds: number,
+  endSeconds: number,
+): string {
+  const startMs = startSeconds * 1000;
+  if (!startMs) return '—';
+
+  const startText = formatClock(startMs);
+  const endMs = endSeconds * 1000;
+  if (!endMs) return `${startText} 起`;
+
+  const sameDay =
+    new Date(startMs).toDateString() === new Date(endMs).toDateString();
+  const endText = sameDay
+    ? new Date(endMs).toLocaleTimeString('zh-CN', { hour12: false })
+    : formatClock(endMs);
+
+  return `${startText} – ${endText}`;
+}
+
+/** 计划结束时间已过，但官方仍把事件挂在「进行中」列表里 */
+export function isEventOverdue(endSeconds: number, now: number): boolean {
+  return endSeconds > 0 && now > endSeconds * 1000;
+}
+
+/**
+ * 时长表述，用于「已超出 8 小时 12 分钟」这类句子。
+ * 与 formatDuration 的区别是不带「前」字，也不会返回「刚刚」。
+ */
+export function formatElapsed(seconds: number): string {
+  const diff = Math.max(0, Math.round(seconds));
+  if (diff < 60) return `${diff} 秒`;
+  if (diff < 3600) return `${Math.floor(diff / 60)} 分钟`;
+  if (diff < 86400) {
+    const hours = Math.floor(diff / 3600);
+    const minutes = Math.floor((diff % 3600) / 60);
+    return minutes > 0 ? `${hours} 小时 ${minutes} 分钟` : `${hours} 小时`;
+  }
+  const days = Math.floor(diff / 86400);
+  const hours = Math.floor((diff % 86400) / 3600);
+  return hours > 0 ? `${days} 天 ${hours} 小时` : `${days} 天`;
+}
+
 /** 从 HTML 片段中提取纯文本，避免直接注入 innerHTML */
 export function stripHtml(html: string): string {
   return html

@@ -165,7 +165,7 @@ export default function App() {
         </div>
       ) : null}
 
-      <Announcements events={events} />
+      <Announcements events={events} now={now} />
 
       <StatCards
         total={nodes.length}

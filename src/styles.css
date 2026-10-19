@@ -745,6 +745,18 @@ select {
   vertical-align: 1px;
 }
 
+/* 事件已超出计划结束时间，官方仍未更新状态 */
+.pill--overdue {
+  flex: none;
+  margin-left: 8px;
+  padding: 1px 7px;
+  background: rgba(251, 191, 36, 0.18);
+  color: #fcd34d;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: help;
+}
+
 .col-status {
   width: 118px;
 }
