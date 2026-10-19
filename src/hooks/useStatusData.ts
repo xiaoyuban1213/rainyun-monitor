@@ -2,21 +2,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { fetchStatus } from '../api/rainyun';
 import type { NodeItem, ServiceEvent } from '../types';
 
-const AUTO_REFRESH_KEY = 'rainyun-monitor:auto-refresh';
-
-export const REFRESH_OPTIONS = [
-  { value: 0, label: '关闭' },
-  { value: 30, label: '30 秒' },
-  { value: 60, label: '1 分钟' },
-  { value: 300, label: '5 分钟' },
-] as const;
-
-function readAutoRefresh(): number {
-  const raw = localStorage.getItem(AUTO_REFRESH_KEY);
-  if (raw === null) return 60;
-  const value = Number(raw);
-  return REFRESH_OPTIONS.some((o) => o.value === value) ? value : 60;
-}
+/** 固定的自动刷新间隔（秒）。界面不再提供调整入口。 */
+export const REFRESH_INTERVAL_SECONDS = 30;
 
 export interface StatusDataState {
   nodes: NodeItem[];
@@ -39,11 +26,17 @@ export function useStatusData() {
     lastUpdated: null,
   });
 
-  const [autoRefresh, setAutoRefreshState] = useState<number>(readAutoRefresh);
   const [now, setNow] = useState(() => Date.now());
+  const [hidden, setHidden] = useState(() => document.hidden);
 
   const taskRef = useRef<Promise<void> | null>(null);
   const mountedRef = useRef(true);
+  /** 供可见性回调读取最新一次成功刷新的时间，避免把 state 塞进依赖 */
+  const lastUpdatedRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    lastUpdatedRef.current = state.lastUpdated;
+  }, [state.lastUpdated]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -53,7 +46,7 @@ export function useStatusData() {
   }, []);
 
   const load = useCallback((): Promise<void> => {
-    // 同一时刻只允许一个请求，避免自动刷新与手动刷新叠在一起。
+    // 同一时刻只允许一个请求，避免自动刷新与手动重试叠在一起。
     // 不使用 AbortController：StrictMode 的模拟卸载会把请求掐断，
     // 导致重新挂载后界面一直停在加载态（结果靠 mountedRef 丢弃即可）。
     if (taskRef.current) return taskRef.current;
@@ -102,42 +95,41 @@ export function useStatusData() {
     void load();
   }, [load]);
 
-  // 自动刷新
+  // 跟踪页面可见性：后台标签页没必要继续轮询
   useEffect(() => {
-    if (!autoRefresh) return;
-    const timer = window.setInterval(() => {
-      void load();
-    }, autoRefresh * 1000);
-    return () => window.clearInterval(timer);
-  }, [autoRefresh, load]);
-
-  // 倒计时用的秒级心跳
-  useEffect(() => {
-    if (!autoRefresh) return;
-    const timer = window.setInterval(() => setNow(Date.now()), 1000);
-    return () => window.clearInterval(timer);
-  }, [autoRefresh]);
-
-  const setAutoRefresh = useCallback((seconds: number) => {
-    setAutoRefreshState(seconds);
-    localStorage.setItem(AUTO_REFRESH_KEY, String(seconds));
+    const onVisibilityChange = () => setHidden(document.hidden);
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    return () =>
+      document.removeEventListener('visibilitychange', onVisibilityChange);
   }, []);
 
-  const nextRefreshAt =
-    autoRefresh && state.lastUpdated
-      ? state.lastUpdated + autoRefresh * 1000
-      : null;
+  // 自动刷新：隐藏时暂停；回到前台时若数据已过期，立即补一次
+  useEffect(() => {
+    if (hidden) return;
 
-  const secondsUntilRefresh = nextRefreshAt
-    ? Math.max(0, Math.ceil((nextRefreshAt - now) / 1000))
-    : null;
+    const last = lastUpdatedRef.current;
+    const stale =
+      last === null || Date.now() - last >= REFRESH_INTERVAL_SECONDS * 1000;
+    if (stale) void load();
+
+    const timer = window.setInterval(
+      () => void load(),
+      REFRESH_INTERVAL_SECONDS * 1000,
+    );
+    return () => window.clearInterval(timer);
+  }, [hidden, load]);
+
+  // 秒级心跳：驱动相对时间与「5 分钟未上报」判定，隐藏时无需空转
+  useEffect(() => {
+    if (hidden) return;
+    setNow(Date.now());
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, [hidden]);
 
   return {
     ...state,
     now,
-    autoRefresh,
-    setAutoRefresh,
-    secondsUntilRefresh,
     refresh: load,
   };
 }

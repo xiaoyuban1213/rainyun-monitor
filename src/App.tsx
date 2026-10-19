@@ -1,10 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Announcements } from './components/Announcements';
-import { Dropdown } from './components/Dropdown';
 import { NodeTable } from './components/NodeTable';
 import { StatCards } from './components/StatCards';
 import { Toolbar } from './components/Toolbar';
-import { REFRESH_OPTIONS, useStatusData } from './hooks/useStatusData';
+import { useStatusData } from './hooks/useStatusData';
 import type { SortKey, StatusFilter } from './types';
 import {
   formatClock,
@@ -25,9 +24,6 @@ export default function App() {
     error,
     lastUpdated,
     now,
-    autoRefresh,
-    setAutoRefresh,
-    secondsUntilRefresh,
     refresh,
   } = useStatusData();
 
@@ -114,7 +110,7 @@ export default function App() {
       }
     });
     return sorted;
-  }, [nodes, product, statusFilter, query, sort]);
+  }, [nodes, product, statusFilter, query, sort, now]);
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const currentPage = Math.min(page, pageCount);
@@ -154,35 +150,7 @@ export default function App() {
                   ? `更新于 ${formatClock(lastUpdated)}`
                   : '尚未获取数据'}
             </span>
-            {secondsUntilRefresh !== null ? (
-              <span className="refresh-meta__countdown">
-                {secondsUntilRefresh}s 后自动刷新
-              </span>
-            ) : null}
           </div>
-
-          <Dropdown
-            label="自动刷新间隔"
-            align="right"
-            value={autoRefresh}
-            options={REFRESH_OPTIONS.map((option) => ({
-              value: option.value,
-              label: `自动刷新：${option.label}`,
-            }))}
-            onChange={setAutoRefresh}
-          />
-
-          <button
-            type="button"
-            className="button"
-            onClick={() => void refresh()}
-            disabled={refreshing}
-          >
-            <span className={`button__icon ${refreshing ? 'is-spinning' : ''}`}>
-              ⟳
-            </span>
-            刷新
-          </button>
         </div>
       </header>
 

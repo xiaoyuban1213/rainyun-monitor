@@ -40,6 +40,10 @@ export function Dropdown<T extends string | number>({
   );
   const selected = options[selectedIndex];
   const active = options[Math.min(activeIndex, options.length - 1)];
+  // 焦点始终留在 trigger 上，用 aria-activedescendant 告知读屏软件当前高亮项
+  const activeOptionId = open
+    ? `${menuId}-option-${Math.min(activeIndex, options.length - 1)}`
+    : undefined;
 
   // 打开时把高亮定位到当前选中项
   useEffect(() => {
@@ -125,9 +129,11 @@ export function Dropdown<T extends string | number>({
         type="button"
         ref={triggerRef}
         className={`dropdown__trigger ${open ? 'is-open' : ''}`}
+        role="combobox"
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={open ? menuId : undefined}
+        aria-activedescendant={activeOptionId}
         aria-label={label}
         onClick={() => setOpen((o) => !o)}
         onKeyDown={onTriggerKeyDown}
@@ -149,6 +155,7 @@ export function Dropdown<T extends string | number>({
             return (
               <li
                 key={String(option.value)}
+                id={`${menuId}-option-${index}`}
                 role="option"
                 aria-selected={isSelected}
                 className={`dropdown__option ${isSelected ? 'is-selected' : ''} ${

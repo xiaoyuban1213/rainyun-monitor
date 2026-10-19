@@ -145,12 +145,6 @@ select {
   font-variant-numeric: tabular-nums;
 }
 
-.refresh-meta__countdown {
-  font-size: 11.5px;
-  color: var(--faint);
-  font-variant-numeric: tabular-nums;
-}
-
 /* ---------- controls ---------- */
 
 .button {
@@ -196,22 +190,6 @@ select {
   background: var(--panel-strong);
   color: var(--text);
   border-color: var(--border-strong);
-}
-
-.button__icon {
-  display: inline-block;
-  font-size: 15px;
-  line-height: 1;
-}
-
-.button__icon.is-spinning {
-  animation: spin 0.9s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
 }
 
 /* ---------- dropdown ---------- */
