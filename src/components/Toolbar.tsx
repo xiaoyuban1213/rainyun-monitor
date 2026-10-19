@@ -1,5 +1,20 @@
 import type { SortKey, StatusFilter } from '../types';
 import { productLabel } from '../utils/format';
+import { Dropdown } from './Dropdown';
+
+const STATUS_OPTIONS = [
+  { value: 'all', label: '全部状态' },
+  { value: 'ok', label: '运行正常' },
+  { value: 'overload', label: '运行阻塞' },
+  { value: 'down', label: '服务中断' },
+] as const satisfies readonly { value: StatusFilter; label: string }[];
+
+const SORT_OPTIONS = [
+  { value: 'cpu', label: '按 CPU 降序' },
+  { value: 'memory', label: '按内存降序' },
+  { value: 'updated', label: '按更新时间' },
+  { value: 'name', label: '按名称' },
+] as const satisfies readonly { value: SortKey; label: string }[];
 
 interface ProductOption {
   code: string;
@@ -48,29 +63,19 @@ export function Toolbar({
         </label>
 
         <div className="toolbar__controls">
-          <select
-            className="select"
+          <Dropdown
+            label="按状态筛选"
             value={statusFilter}
-            onChange={(e) => onStatusChange(e.target.value as StatusFilter)}
-            aria-label="按状态筛选"
-          >
-            <option value="all">全部状态</option>
-            <option value="ok">运行正常</option>
-            <option value="overload">运行阻塞</option>
-            <option value="down">服务中断</option>
-          </select>
+            options={STATUS_OPTIONS}
+            onChange={onStatusChange}
+          />
 
-          <select
-            className="select"
+          <Dropdown
+            label="排序方式"
             value={sort}
-            onChange={(e) => onSortChange(e.target.value as SortKey)}
-            aria-label="排序方式"
-          >
-            <option value="cpu">按 CPU 降序</option>
-            <option value="memory">按内存降序</option>
-            <option value="updated">按更新时间</option>
-            <option value="name">按名称</option>
-          </select>
+            options={SORT_OPTIONS}
+            onChange={onSortChange}
+          />
         </div>
       </div>
 

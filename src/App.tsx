@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Announcements } from './components/Announcements';
+import { Dropdown } from './components/Dropdown';
 import { NodeTable } from './components/NodeTable';
 import { StatCards } from './components/StatCards';
 import { Toolbar } from './components/Toolbar';
@@ -160,18 +161,16 @@ export default function App() {
             ) : null}
           </div>
 
-          <select
-            className="select"
+          <Dropdown
+            label="自动刷新间隔"
+            align="right"
             value={autoRefresh}
-            onChange={(e) => setAutoRefresh(Number(e.target.value))}
-            aria-label="自动刷新间隔"
-          >
-            {REFRESH_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                自动刷新：{option.label}
-              </option>
-            ))}
-          </select>
+            options={REFRESH_OPTIONS.map((option) => ({
+              value: option.value,
+              label: `自动刷新：${option.label}`,
+            }))}
+            onChange={setAutoRefresh}
+          />
 
           <button
             type="button"
