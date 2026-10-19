@@ -49,7 +49,8 @@ export function isAbnormal(state: NodeState): boolean {
 export const PRODUCT_LABELS: Record<string, string> = {
   rcs: '云服务器',
   rgs: '游戏云',
-  router: '路由器',
+  /** 接口把路由器、防火墙、内部路由都归在 router 这一个 code 下，故用大类命名 */
+  router: '网络设备',
   ros: '对象存储',
   rvh: '虚拟主机',
   storage: '存储',
